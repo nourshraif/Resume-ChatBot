@@ -1,9 +1,12 @@
 """FastAPI backend for the React resume chatbot UI."""
 
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from src.ingest import ensure_index_exists
 from src.rag import answer
 
 
@@ -26,6 +29,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def startup_ingest() -> None:
+    # Render free tier doesn't provide shell/one-off jobs; auto-prepare index on boot.
+    auto = os.getenv("AUTO_INGEST_ON_STARTUP", "true").lower()
+    if auto not in {"1", "true", "yes", "on"}:
+        return
+    try:
+        count = ensure_index_exists()
+        print(f"[startup] resume index ready with {count} chunks")
+    except Exception as exc:
+        # Keep startup alive; /api/chat will return error details if index/model unavailable.
+        print(f"[startup] index preparation failed: {exc}")
 
 
 @app.get("/api/health")

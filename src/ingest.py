@@ -18,35 +18,60 @@ from src.io_util import configure_utf8_stdout
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "resume.txt"
 CHROMA_DIR = ROOT / "chroma_db"
+COLLECTION_NAME = "resume"
 
 
-def main() -> None:
-    configure_utf8_stdout()
+def build_index(force_rebuild: bool = True) -> int:
+    """
+    Build the Chroma index from resume.txt.
+
+    Returns number of stored chunks.
+    """
     if not DATA_PATH.is_file():
-        raise SystemExit(f"Missing {DATA_PATH}")
+        raise FileNotFoundError(f"Missing {DATA_PATH}")
 
     raw = DATA_PATH.read_text(encoding="utf-8")
     chunks = chunk_text(raw)
     if not chunks:
-        raise SystemExit("No chunks produced (is resume.txt empty?)")
+        raise ValueError("No chunks produced (is resume.txt empty?)")
 
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
     ef = embedding_functions.DefaultEmbeddingFunction()
-
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    name = "resume"
-    # Chroma no longer allows delete(where={}); replace index by dropping the collection.
-    for col in client.list_collections():
-        if col.name == name:
-            client.delete_collection(name)
-            break
-    collection = client.create_collection(name=name, embedding_function=ef)
 
+    existing = {c.name for c in client.list_collections()}
+    if COLLECTION_NAME in existing and force_rebuild:
+        client.delete_collection(COLLECTION_NAME)
+    if COLLECTION_NAME in existing and not force_rebuild:
+        return client.get_collection(name=COLLECTION_NAME).count()
+
+    collection = client.create_collection(name=COLLECTION_NAME, embedding_function=ef)
     ids = [f"c{i}" for i in range(len(chunks))]
     collection.add(ids=ids, documents=chunks)
+    return len(chunks)
 
-    print(f"Stored {len(chunks)} chunks in {CHROMA_DIR}")
-    print("First chunk preview:", chunks[0][:160].replace("\n", " "), "...")
+
+def ensure_index_exists() -> int:
+    """
+    Ensure index exists for hosting environments without shell access.
+
+    If no collection is present, build it. Otherwise return existing count.
+    """
+    CHROMA_DIR.mkdir(parents=True, exist_ok=True)
+    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    existing = {c.name for c in client.list_collections()}
+    if COLLECTION_NAME in existing:
+        return client.get_collection(name=COLLECTION_NAME).count()
+    return build_index(force_rebuild=True)
+
+
+def main() -> None:
+    configure_utf8_stdout()
+    try:
+        count = build_index(force_rebuild=True)
+    except (FileNotFoundError, ValueError) as exc:
+        raise SystemExit(str(exc)) from exc
+    print(f"Stored {count} chunks in {CHROMA_DIR}")
 
 
 if __name__ == "__main__":
