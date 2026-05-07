@@ -1,0 +1,60 @@
+NOUR SHREIF 
+Baalbeck ,Lebanon
++961 71 696 774
+nourshraif4@gmail.com
+linkedIn |
+GitHub
+Professional Summary
+Master 1 candidate in Computer
+Science at Lebanese University,
+combining advanced coursework in
+AI/ML with hands-on experience
+shipping full-stack applications and
+ML pipelines.
+Education
+Lebanese University – Faculty of
+Sciences 
+Masters in Computer Science, Data
+Science  Specialization | Expected June
+2027 
+BSc in Computer Science | June 2025  
+Relevant Coursework:
+Machine Learning and Deep Learning
+courses of the AI Engineers Program
+launched by Lara Wehbe
+Languages
+Arabic - Native, English - Fluent, French 
+Intermediate
+Technical Skills
+Languages: Python, Java, C/C++, JavaScript, SQL,
+C#, Kotlin 
+Machine learning | Artificial Intelligence:
+Scikit-learn, Pandas, NumPy, TensorFlow, NLP, K
+Means, TF-IDF, Classification  
+Web | Database :React, http://Node.js, Express,
+HTML/CSS, PHP, MySQL, MongoDB, REST APIs  
+Tools: Git, Docker,
+Selected Projects
+Anomaly Detection in Credit Card Transactions
+Python, Scikit-learn | GitHub
+Engineered Isolation Forest model on 280k+                             
+transactions to flag fraud.
+Cut false positives by 23% vs rule-based baseline  
+used in coursework.
+Heart Disease Prediction Model | Python,  
+Streamlit | GitHub 
+Trained Random Forest classifier on 300k patient
+records, achieving 87% accuracy.
+Deployed interactive dashboard for real-time
+risk scoring.
+Online BookShop Platform | React,Node.js,
+MySQL | GitHub
+Developed full-stack e-commerce with JWT auth,
+cart, admin panel, 15+ API endpoints.
+Designed normalized relational DB schema
+handling products, users, orders.
+News Clustering Model | Python, NLP | GitHub
+Built unsupervised pipeline using TF-IDF + K
+Means to cluster 5k+ articles by topic.
+Achieved 0.72 silhouette score; visualized with
+PCA/Matplotlib.
