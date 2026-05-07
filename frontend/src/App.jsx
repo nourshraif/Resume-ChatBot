@@ -32,7 +32,9 @@ function formatHoverTimestamp(iso) {
 }
 
 async function sendChatMessage(message) {
-  const response = await fetch("/api/chat", {
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+  const endpoint = baseUrl ? `${baseUrl}/api/chat` : "/api/chat";
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message }),
