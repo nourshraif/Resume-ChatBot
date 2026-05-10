@@ -5,8 +5,8 @@ const PROFILE = {
   title: "Computer Science Graduate",
   tagline: "I build practical ML and software projects with a focus on useful outcomes.",
   links: [
-    { label: "LinkedIn", href: "https://www.linkedin.com/" },
-    { label: "GitHub", href: "https://github.com/" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/nour-shraif-542201319/" },
+    { label: "GitHub", href: "https://github.com/nourshraif" },
     { label: "Email", href: "mailto:nourshraif4@gmail.com" },
   ],
 };

@@ -23,8 +23,7 @@ Machine Learning and Deep Learning
 courses of the AI Engineers Program
 launched by Lara Wehbe
 Languages
-Arabic - Native, English - Fluent, French 
-Intermediate
+Arabic - Native, English - Fluent
 Technical Skills
 Languages: Python, Java, C/C++, JavaScript, SQL,
 C#, Kotlin 

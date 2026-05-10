@@ -17,10 +17,15 @@ def main() -> None:
         if not q:
             break
         try:
-            out = answer(q)
+            result = answer(q)
+            out = result["answer"]
+            src = result.get("sources") or []
+            if src:
+                print(f"Bot: {out}\n   Sources: {', '.join(src)}\n")
+            else:
+                print(f"Bot: {out}\n")
         except Exception as e:
-            out = f"Error: {e}"
-        print(f"Bot: {out}\n")
+            print(f"Bot: Error: {e}\n")
 
 
 if __name__ == "__main__":

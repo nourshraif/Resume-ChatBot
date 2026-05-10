@@ -47,7 +47,9 @@ def build_index(force_rebuild: bool = True) -> int:
 
     collection = client.create_collection(name=COLLECTION_NAME, embedding_function=ef)
     ids = [f"c{i}" for i in range(len(chunks))]
-    collection.add(ids=ids, documents=chunks)
+    source_label = DATA_PATH.name
+    metadatas = [{"source": source_label} for _ in chunks]
+    collection.add(ids=ids, documents=chunks, metadatas=metadatas)
     return len(chunks)
 
 

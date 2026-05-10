@@ -23,12 +23,14 @@ def main() -> None:
     p.add_argument("-k", type=int, default=4, help="Number of chunks to return")
     args = p.parse_args()
 
-    chunks = retrieve(args.question, k=args.k)
+    chunks, sources = retrieve(args.question, k=args.k)
     if not chunks:
         print("No results (empty index or ingest not run).")
         return
 
     print("Question:", args.question)
+    if sources:
+        print("Sources:", ", ".join(sources))
     print()
     for i, ch in enumerate(chunks, start=1):
         preview = ch.strip().replace("\n", " ")

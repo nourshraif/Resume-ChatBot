@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 import chromadb
 from chromadb.utils import embedding_functions
@@ -25,13 +26,24 @@ def _collection():
     return client.get_collection(name="resume", embedding_function=ef)
 
 
-def retrieve(question: str, k: int = 4) -> list[str]:
+def retrieve(question: str, k: int = 4) -> tuple[list[str], list[str]]:
+    """Return retrieved chunk texts and deduplicated source labels from chunk metadata."""
     col = _collection()
     res = col.query(query_texts=[question], n_results=k)
     docs = res.get("documents") or []
+    metas_raw = res.get("metadatas") or []
     if not docs or not docs[0]:
-        return []
-    return list(docs[0])
+        return [], []
+    doc_list = list(docs[0])
+    meta_row = list(metas_raw[0]) if metas_raw and metas_raw[0] else []
+    labels: list[str] = []
+    for i, _doc in enumerate(doc_list):
+        m = meta_row[i] if i < len(meta_row) else None
+        if not isinstance(m, dict):
+            m = {}
+        labels.append(m.get("source", "resume.txt"))
+    sources = list(dict.fromkeys(labels))
+    return doc_list, sources
 
 
 def _hf_client() -> InferenceClient:
@@ -46,19 +58,26 @@ def _hf_client() -> InferenceClient:
     return InferenceClient(model=model, token=token)
 
 
+GUARDRAIL_SYSTEM = (
+    "You are Nour Shraif's resume assistant. Only answer using the provided context "
+    "from CV and projects. If the answer is not in context, respond exactly: "
+    "'That's not in my resume yet, but I'm a fast learner. Want to connect and discuss?' "
+    "Never invent dates, companies, or metrics."
+)
+
+
 def generate_answer(
-    question: str, context_chunks: list[str], max_tokens: int = 512
+    question: str,
+    context_chunks: list[str],
+    max_tokens: int = 768,
 ) -> str:
     """Call the LLM given pre-retrieved chunks (avoids double embedding/search)."""
     context = "\n\n---\n\n".join(context_chunks)
-    system = (
-        "You answer questions about the candidate's resume. "
-        "Use ONLY the CONTEXT below. If the answer is not in the context, "
-        "say you do not have that information in the resume. Be concise."
-    )
+    system = GUARDRAIL_SYSTEM
     user = f"CONTEXT:\n{context}\n\nQUESTION:\n{question}"
 
     client = _hf_client()
+    temperature = float(os.getenv("RAG_TEMPERATURE", "0.38"))
     try:
         out = client.chat_completion(
             messages=[
@@ -66,7 +85,7 @@ def generate_answer(
                 {"role": "user", "content": user},
             ],
             max_tokens=max_tokens,
-            temperature=0.2,
+            temperature=temperature,
         )
     except BadRequestError as e:
         mid = os.getenv("HF_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
@@ -81,11 +100,28 @@ def generate_answer(
     return (msg.content or "").strip()
 
 
-def answer(question: str, k: int = 4, max_tokens: int = 512) -> str:
-    context_chunks = retrieve(question, k=k)
+def answer(
+    question: str,
+    k: int = 6,
+    max_tokens: int = 768,
+) -> dict[str, Any]:
+    context_chunks, sources = retrieve(question, k=k)
     if not context_chunks:
-        return (
-            "No chunks retrieved. Run ingest and check that chroma_db exists "
-            "and resume.txt is not empty."
-        )
-    return generate_answer(question, context_chunks, max_tokens=max_tokens)
+        return {
+            "answer": (
+                "No chunks retrieved. Run ingest and check that chroma_db exists "
+                "and resume.txt is not empty."
+            ),
+            "sources": [],
+            "num_chunks": 0,
+        }
+    llm_response = generate_answer(
+        question,
+        context_chunks,
+        max_tokens=max_tokens,
+    )
+    return {
+        "answer": llm_response,
+        "sources": sources,
+        "num_chunks": len(context_chunks),
+    }
