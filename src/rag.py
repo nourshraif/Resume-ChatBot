@@ -26,10 +26,88 @@ def _collection():
     return client.get_collection(name="resume", embedding_function=ef)
 
 
+
+def _wants_project_list(question: str) -> bool:
+    q = question.lower()
+    if "project" not in q:
+        return False
+    return any(
+        w in q
+        for w in (
+            "what",
+            "which",
+            "list",
+            "all",
+            "every",
+            "name",
+            "tell",
+            "show",
+            "did she",
+            "did he",
+            "did they",
+            "has she",
+            "has he",
+            "work on",
+            "built",
+        )
+    )
+
+
+def _wants_broad_coverage(question: str) -> bool:
+    """Detect questions that need most/all CV chunks (e.g. list every skill)."""
+    if _wants_project_list(question):
+        return True
+    q = question.lower()
+    if "skill" in q and any(w in q for w in ("what", "which", "list", "all")):
+        return True
+    return False
+
+
+def _chunk_id_sort_key(chunk_id: str) -> int:
+    suffix = chunk_id[1:] if chunk_id.startswith("c") else chunk_id
+    return int(suffix) if suffix.isdigit() else 0
+
+
+def retrieve_all_chunks() -> tuple[list[str], list[str]]:
+    """Return every indexed chunk in original document order."""
+    col = _collection()
+    data = col.get(include=["documents", "metadatas"])
+    ids = data.get("ids") or []
+    docs = data.get("documents") or []
+    metas = data.get("metadatas") or []
+    if not ids or not docs:
+        return [], []
+
+    rows = sorted(zip(ids, docs, metas), key=lambda row: _chunk_id_sort_key(row[0]))
+    doc_list = [doc for _, doc, _ in rows]
+    labels: list[str] = []
+    for _, _, meta in rows:
+        if not isinstance(meta, dict):
+            meta = {}
+        labels.append(meta.get("source", "resume.txt"))
+    sources = list(dict.fromkeys(labels))
+    return doc_list, sources
+
+
+def retrieve_project_chunks() -> tuple[list[str], list[str]]:
+    """Return chunks from the Selected Projects section onward."""
+    doc_list, sources = retrieve_all_chunks()
+    start = next((i for i, doc in enumerate(doc_list) if "Selected Projects" in doc), 0)
+    return doc_list[start:], sources
+
+
 def retrieve(question: str, k: int = 4) -> tuple[list[str], list[str]]:
     """Return retrieved chunk texts and deduplicated source labels from chunk metadata."""
+    if _wants_project_list(question):
+        return retrieve_project_chunks()
+
     col = _collection()
-    res = col.query(query_texts=[question], n_results=k)
+    total = col.count()
+    if _wants_broad_coverage(question):
+        return retrieve_all_chunks()
+
+    n = min(max(k, 1), total)
+    res = col.query(query_texts=[question], n_results=n)
     docs = res.get("documents") or []
     metas_raw = res.get("metadatas") or []
     if not docs or not docs[0]:
@@ -60,10 +138,27 @@ def _hf_client() -> InferenceClient:
 
 GUARDRAIL_SYSTEM = (
     "You are Nour Shraif's resume assistant. Only answer using the provided context "
-    "from CV and projects. If the answer is not in context, respond exactly: "
+    "from CV and projects. When asked to list items (projects, skills, etc.), include "
+    "every matching item from the context — do not omit entries that are present. "
+    "If the answer is not in context, respond exactly: "
     "'That's not in my resume yet, but I'm a fast learner. Want to connect and discuss?' "
     "Never invent dates, companies, or metrics."
 )
+
+
+def _listing_instruction(question: str) -> str:
+    if _wants_project_list(question):
+        return (
+            "\n\nINSTRUCTION: List every distinct project from the context. "
+            "Use one bullet per project in the form: **Project Name** — short description. "
+            "Do not merge projects, skip any, or invent details."
+        )
+    if _wants_broad_coverage(question):
+        return (
+            "\n\nINSTRUCTION: Include every matching item from the context. "
+            "Do not omit entries that are present."
+        )
+    return ""
 
 
 def generate_answer(
@@ -74,7 +169,10 @@ def generate_answer(
     """Call the LLM given pre-retrieved chunks (avoids double embedding/search)."""
     context = "\n\n---\n\n".join(context_chunks)
     system = GUARDRAIL_SYSTEM
-    user = f"CONTEXT:\n{context}\n\nQUESTION:\n{question}"
+    user = (
+        f"CONTEXT:\n{context}\n\nQUESTION:\n{question}"
+        f"{_listing_instruction(question)}"
+    )
 
     client = _hf_client()
     temperature = float(os.getenv("RAG_TEMPERATURE", "0.38"))
@@ -102,9 +200,11 @@ def generate_answer(
 
 def answer(
     question: str,
-    k: int = 6,
+    k: int = 8,
     max_tokens: int = 768,
 ) -> dict[str, Any]:
+    if _wants_project_list(question):
+        max_tokens = max(max_tokens, 1024)
     context_chunks, sources = retrieve(question, k=k)
     if not context_chunks:
         return {

@@ -12,7 +12,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from src.ingest import ensure_index_exists
+from src.ingest import ensure_index_fresh
 from src.rag import answer
 
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ class ChatRequest(BaseModel):
         max_length=500,
         description="User question about the resume",
     )
-    k: int = Field(default=6, ge=1, le=8, description="Top-k chunks to retrieve")
+    k: int = Field(default=8, ge=1, le=12, description="Top-k chunks to retrieve")
 
 
 class ChatResponse(BaseModel):
@@ -81,7 +81,7 @@ def startup_ingest() -> None:
     if auto not in {"1", "true", "yes", "on"}:
         return
     try:
-        count = ensure_index_exists()
+        count = ensure_index_fresh()
         logger.info("resume index ready with %s chunks", count)
     except Exception as exc:
         logger.warning("index preparation failed: %s", exc)
