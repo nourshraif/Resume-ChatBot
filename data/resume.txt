@@ -1,9 +1,9 @@
 NOUR SHREIF 
+Technical Skills
 Baalbeck ,Lebanon
 +961 71 696 774
 nourshraif4@gmail.com
-linkedIn |
-GitHub
+linkedIn | GitHub
 Professional Summary
 Master 1 candidate in Computer
 Science at Lebanese University,
@@ -14,46 +14,56 @@ ML pipelines.
 Education
 Lebanese University – Faculty of
 Sciences 
-Masters in Computer Science, Data
-Science  Specialization | Expected June
-2027 
-BSc in Computer Science | June 2025  
+Master 1 in Computer Science|
+Expected July 2026
+BSc in Computer Science | June 2025 | 
 Relevant Coursework:
 Machine Learning and Deep Learning
 courses of the AI Engineers Program
 launched by Lara Wehbe
 Languages
-Arabic - Native, English - Fluent
-Technical Skills
+Arabic - Native,English - Fluent
 Languages: Python, Java, C/C++, JavaScript, SQL,
 C#, Kotlin 
 Machine learning | Artificial Intelligence:
-Scikit-learn, Pandas, NumPy, TensorFlow, NLP, K
-Means, TF-IDF, Classification  
-Web | Database :React, http://Node.js, Express,
-HTML/CSS, PHP, MySQL, MongoDB, REST APIs  
+Scikit-learn, Pandas, NumPy, seaborn, NLP, K
+Means, TF-IDF, Classification 
+Web | Database :React, Node.js, Express,
+HTML/CSS, PHP, MySQL, MongoDB, REST APIs , 
+PostgreSQL
 Tools: Git, Docker,
 Selected Projects
 Anomaly Detection in Credit Card Transactions
 Python, Scikit-learn | GitHub
-Engineered Isolation Forest model on 280k+                             
-transactions to flag fraud.
-Cut false positives by 23% vs rule-based baseline  
-used in coursework.
-Heart Disease Prediction Model | Python,  
-Streamlit | GitHub 
-Trained Random Forest classifier on 300k patient
-records, achieving 87% accuracy.
-Deployed interactive dashboard for real-time
-risk scoring.
-Online BookShop Platform | React,Node.js,
-MySQL | GitHub
-Developed full-stack e-commerce with JWT auth,
-cart, admin panel, 15+ API endpoints.
-Designed normalized relational DB schema
-handling products, users, orders.
+Unsupervised credit card fraud detection using
+Isolation Forest and One-Class SVM on
+imbalanced transaction data.
 News Clustering Model | Python, NLP | GitHub
-Built unsupervised pipeline using TF-IDF + K
-Means to cluster 5k+ articles by topic.
-Achieved 0.72 silhouette score; visualized with
-PCA/Matplotlib.
+Developed a news article clustering system
+utilizing TF-IDF, PCA, and both K-Means and
+Agglomerative Clustering. 
+Document Translation Agent | Python, FastAPI,
+Next.js | GitHub
+Developed a self-hosted document translation
+pipeline supporting PDF, DOCX, PPTX, XLSX, and TXT
+with layout preservation, hybrid LibreTranslate and
+LangChain/Ollama routing, and async Celery job
+processing.
+CV RAG Chatbot | Python, FastAPI, React,
+ChromaDB | GitHub
+resume-chat-bot-ivory.vercel.app
+Built a resume Q&A chatbot using ChromaDB semantic
+search and Hugging Face LLM generation, with custom
+chunking for grounded answers, a React frontend, and
+a rate-limited FastAPI API.
+Vertex — Job Matching Platform | Python,
+FastAPI, Next.js, PostgreSQL | GitHub
+Built a full-stack talent platform with CV skill extraction,
+pgvector job matching, multi-source scraping, Stripe
+subscriptions, and company applicant pipelines with
+skills gap analysis.
+Words Galaxy | Arduino, C++
+Designed a space-themed vocabulary game using
+Arduino UNO, integrating LCD, joystick, servo, buzzers,
+and LEDs for timed quizzes, scoring, and reward
+feedback.
